@@ -1,29 +1,38 @@
-# Create T3 App
+## PDF Q&A project
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Thanks for interviewing with Sample 😊
 
-## What's next? How do I make an app with this?
+In this interview, we'll be building a webpage that allows users to answer questions about a PDF with LLMs. The aim of this project is to give you a sense of the type of things we'd build at Sample, as well as give us a sense of how you build a project end-to-end with ambiguity.
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+Some notes before we get started:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+- You can treat me like a technical PM on the job
+- Feel free to use _any_ online resource including ChatGPT/LLMs
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Drizzle](https://orm.drizzle.team)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
+Our user wants questions to be answered from their document. On top of answers, they'd like to be able to review answers with relevant sources. Since LLMs can sometimes be wrong, it's important that the review process is effective & quick.
 
-## Learn More
+Our first priority is to get to an MVP that users could test. After that, you can focus on any area you'd like. Some possibilities include:
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
+- Design & UI
+- Distributed systems/job queuing
+- Extending functionality with new features
 
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
+### Getting started
 
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
+To get started, you can install the dependencies with `npm install`, and run `npm run dev`. This will launch our frontend/backend dev server.
 
-## How do I deploy this?
+You'll primarily be working in `src/pages/index.tsx` for the UI, and `src/server/api/routers/questions.ts` for our backend.
 
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+In `src/server/api/routers/questions.ts`, you'll see a mutation that's called `answerQuestion`. You'll be writing a simple RAG pipeline here.
+
+### Resources
+
+- https://www.acorn.io/resources/learning-center/retrieval-augmented-generation
+
+The basic idea will be to retrieve the relevant sources from the user's document based on a metric (usually cosine similarity), and then pass those sources into an LLM to generate a response. We can prompt the LLM to return the sources that we should show to the user.
+
+We'll be using OpenAI as our frontier model provider for this exercise. We can use any embedding model + any generation model to get responses. We highly recommend using [the structured output mode](https://platform.openai.com/docs/guides/structured-outputs/introduction?lang=node.js) when useful.
+
+### Embeddings
+
+You can store & search embeddings locally. You can use a KD tree library or a local vector database of your choice. [Here's an example](https://github.com/golbin/imvectordb), but feel free to pick anything you'd like.
