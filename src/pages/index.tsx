@@ -10,24 +10,29 @@ const PdfViewer = dynamic(() => import("~/components/pdf-viewer"), {
 import { api } from "~/utils/api";
 
 const questions = [
-  "What the accession number for this order?",
+  "What is the accession number for this order?",
   "What is the ordering physician's name?",
   "What is the final diagnosis in this pathology report?",
 ];
 
 
-type ResponsesType = Record<number, string>;
+type Response = {
+  answer: string;
+  chunk: string;
+};
+
+type Responses = Record<number, Response>;
 
 
 export default function Home() {
   const askQuestionMutation = api.questions.askQuestion.useMutation();
-  const [responses, setResponses] = useState<ResponsesType>({});
+  const [responses, setResponses] = useState<Responses>({});
 
   const handleAskQuestion = async (question: string, index: number) => {
     const response = await askQuestionMutation.mutateAsync({ question });
     setResponses((prevResponses) => ({
       ...prevResponses,
-      [index]: response ?? "",
+      [index]: response ?? { answer: "", chunk: "" },
     }));
   };
 
@@ -44,19 +49,18 @@ export default function Home() {
           <div className="flex h-full flex-col overflow-auto">
             {questions.map((question, index) => (
               <div className="flex flex-col justify-between" key={index}>
+                <span>{question}</span>
                 <div className="flex justify-between">
-                  <span>{question}</span>
-                  <div className="flex justify-between">
-                    <button
-                      onClick={() => handleAskQuestion(question, index)}
-                    >
-                      Ask
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => handleAskQuestion(question, index)}
+                  >
+                    Ask
+                  </button>
                 </div>
                 {responses[index] && (
                   <div className="mt-2 p-2 bg-gray-100 border rounded">
-                    {responses[index]}
+                    <div><strong>Answer:</strong> {responses[index].answer}</div>
+                    <div><strong>Source:</strong> {responses[index].chunk}</div>
                   </div>
                 )}
               </div>
