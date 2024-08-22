@@ -54,7 +54,7 @@ interface SimilarityResult {
   document: DBDocument;
 };
 
-const client = new OpenAI({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 })
 
@@ -68,31 +68,33 @@ export const questionsRouter = createTRPCRouter({
 });
 
 const answerQuestion = async (question: string, ocrResponse: OcrResponse): Promise<string | null | undefined> => {
-  // 1. retrieve relevant parts
-  // 2. create augmented prompt
-  // 3. get and return answer
-  const db = await embedOcrChunks(ocrResponse);
-  const results: SimilarityResult[] = await db.queryText(question); // TODO transform question
-  const result = results[0]?.document.metadata.text;
-  return result;
-  // const input = parseOcrResponse(ocrResponse);
-  // const prompt = `Read the following document:\n\n${input}\n\n---\n\n` +
-  //   `Based on the above, ${question}\n` +
-  //   `Return just the answer, not a complete sentence, but do parse people's names.\n` +
-  //   `Your answer should be in the following format:\nAnswer: {answer}\nReason: "{reason}"\n` +
-  //   `Fill in {reason} with a direct quote from the document that supports your answer. Do not add anything else except the direct quote.`;
-  // const chatCompletion = await client.chat.completions.create({
-  //   messages: [{ role: 'user', "content": prompt }],
-  //   model: 'gpt-3.5-turbo',
-  // });
-  // const messageContent = chatCompletion.choices[0]?.message.content;
-  // return messageContent;
+  const candidateChunks = await findBestChunks(ocrResponse, question);
+  const chunkPromptContent = formatCandidateChunks(candidateChunks);
+  const prompt = `Read the following items:\n\n${chunkPromptContent}\n\n---\n\n` +
+    `Based on the above, ${question}\n` +
+    `Return two parts in your response:\n` +
+    ` 1. The answer (just the answer, not a complete sentence, but do parse people's names.)\n` +
+    ` 2. The ID of the item you found the answer in.\n`;
+  const chatCompletion = await openai.chat.completions.create({
+    messages: [{ role: 'user', "content": prompt }],
+    model: 'gpt-3.5-turbo',
+  });
+  const messageContent = chatCompletion.choices[0]?.message.content;
+  return messageContent;
 }
 
-const parseOcrResponse = (ocrResponse: OcrResponse): string => {
-  return ocrResponse.result.chunks
-    .map(chunk => chunk.blocks.map(block => block.content).join('\n'))
-    .join('\n');
+const findBestChunks = async (ocrResponse: OcrResponse, question: string, numResults = 3): Promise<SimilarityResult[] | undefined> => {
+  const db = await embedOcrChunks(ocrResponse);
+  // Do we want to transform the question? OpenAI's RAG guide suggests just doing it without that step,
+  // and the simple way seems to work fine here
+  const bestChunks: SimilarityResult[] = await db.queryText(question, numResults);
+  return bestChunks;
+}
+
+const formatCandidateChunks = (chunks: SimilarityResult[]): string => {
+  return chunks
+    .map(chunk => `ID:\n${chunk.document.id}\n\nText:\n${chunk.document.metadata.text}`)
+    .join('\n\n')
 }
 
 const embedOcrChunks = async (ocrResponse: OcrResponse): Promise<any> => {
@@ -107,3 +109,16 @@ const embedOcrChunks = async (ocrResponse: OcrResponse): Promise<any> => {
 //   // Transform question into a good embedding
 //   // Pick the most similar chunk embeddings - eg `db.query(queryVector, 5)`
 // }
+
+const createEmbedding = async (text: string): Promise<number[]> => {
+  try {
+    const response = await openai.embeddings.create({
+      input: text,
+      model: 'text-embedding-ada-002',
+    })
+
+    return response.data[0].embedding;
+  } catch (error) {
+    throw error;
+  }
+}
