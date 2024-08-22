@@ -43,20 +43,22 @@ export default function Home() {
         <div className="grid grid-cols-2 overflow-hidden">
           <div className="flex h-full flex-col overflow-auto">
             {questions.map((question, index) => (
-              <div className="flex justify-between" key={index}>
-                <span>{question}</span>
+              <div className="flex flex-col justify-between" key={index}>
                 <div className="flex justify-between">
-                  <button
-                    onClick={() => handleAskQuestion(question, index)}
-                  >
-                    Ask
-                  </button>
-                  {responses[index] && (
-                    <div className="mt-2 p-2 bg-gray-100 border rounded">
-                      {responses[index]}
-                    </div>
-                  )}
+                  <span>{question}</span>
+                  <div className="flex justify-between">
+                    <button
+                      onClick={() => handleAskQuestion(question, index)}
+                    >
+                      Ask
+                    </button>
+                  </div>
                 </div>
+                {responses[index] && (
+                  <div className="mt-2 p-2 bg-gray-100 border rounded">
+                    {responses[index]}
+                  </div>
+                )}
               </div>
             ))}
           </div>
