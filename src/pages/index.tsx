@@ -1,5 +1,7 @@
 import Head from "next/head";
 import dynamic from "next/dynamic";
+import { useState } from "react";
+
 
 const PdfViewer = dynamic(() => import("~/components/pdf-viewer"), {
   ssr: false,
@@ -13,8 +15,21 @@ const questions = [
   "What is the final diagnosis in this pathology report?",
 ];
 
+
+type ResponsesType = Record<number, string>;
+
+
 export default function Home() {
   const askQuestionMutation = api.questions.askQuestion.useMutation();
+  const [responses, setResponses] = useState<ResponsesType>({});
+
+  const handleAskQuestion = async (question: string, index: number) => {
+    const response = await askQuestionMutation.mutateAsync({ question });
+    setResponses((prevResponses) => ({
+      ...prevResponses,
+      [index]: response ?? "",
+    }));
+  };
 
   return (
     <>
@@ -30,16 +45,18 @@ export default function Home() {
             {questions.map((question, index) => (
               <div className="flex justify-between" key={index}>
                 <span>{question}</span>
-                <button
-                  onClick={async () => {
-                    const response = await askQuestionMutation.mutateAsync({
-                      question,
-                    });
-                    alert(response);
-                  }}
-                >
-                  Ask
-                </button>
+                <div className="flex justify-between">
+                  <button
+                    onClick={() => handleAskQuestion(question, index)}
+                  >
+                    Ask
+                  </button>
+                  {responses[index] && (
+                    <div className="mt-2 p-2 bg-gray-100 border rounded">
+                      {responses[index]}
+                    </div>
+                  )}
+                </div>
               </div>
             ))}
           </div>
