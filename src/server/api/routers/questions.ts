@@ -75,7 +75,7 @@ export const questionsRouter = createTRPCRouter({
 });
 
 const answerQuestion = async (question: string, ocrResponse: OcrResponse): Promise<any> => {
-  const db = await embedOcrChunks(ocrResponse);
+  const { db, chunkIndices } = await embedOcrChunks(ocrResponse);
 
   const candidateChunks = await findBestChunks(db, ocrResponse, question);
   const chunkPromptContent = formatCandidateChunks(candidateChunks);
@@ -93,11 +93,14 @@ const answerQuestion = async (question: string, ocrResponse: OcrResponse): Promi
   });
   const parsedResponse = chatCompletion.choices[0]?.message.parsed;
 
-  const chunkUsed = db.get(parsedResponse.chunkId.toString());
+  const chunkIdUsed = parsedResponse.chunkId.toString();
+  const chunkUsed = ocrResponse.result.chunks[chunkIndices[chunkIdUsed]];
+  const blocks = chunkUsed.blocks;
+  const bestBlock = await findBestBlock(parsedResponse?.answer, blocks);
 
   return {
     answer: parsedResponse?.answer,
-    chunk: chunkUsed.metadata.text,
+    chunk: bestBlock.content,
   }
 }
 
@@ -116,26 +119,25 @@ const formatCandidateChunks = (chunks: SimilarityResult[]): string => {
 
 const embedOcrChunks = async (ocrResponse: OcrResponse): Promise<any> => {
   const db = new VectorDB();
+  const chunkIndices: Record<string, number> = {};
   const chunks = ocrResponse.result.chunks;
-  const chunkEmbeds = chunks.map(chunk => chunk.embed);
-  await Promise.all(chunkEmbeds.map(embed => db.addText(embed)));
-  return db;
+  for (let i = 0; i < chunks.length; i++) {
+    const document = await db.addText(chunks[i].embed);
+    chunkIndices[document.id] = i;
+  }
+  return { db, chunkIndices };
 }
 
-// function retrieveRelevantChunks(question) {
-//   // Transform question into a good embedding
-//   // Pick the most similar chunk embeddings - eg `db.query(queryVector, 5)`
-// }
+const findBestBlock = async (answer: string, blocks: Block[]): Promise<Block> => {
+  const blockdb = new VectorDB();
+  const blockIndices: Record<string, number> = {};
 
-const createEmbedding = async (text: string): Promise<number[]> => {
-  try {
-    const response = await openai.embeddings.create({
-      input: text,
-      model: 'text-embedding-ada-002',
-    })
-
-    return response.data[0].embedding;
-  } catch (error) {
-    throw error;
+  for (let i = 0; i < blocks.length; i++) {
+    const document = await blockdb.addText(blocks[i].content);
+    blockIndices[document.id] = i;
   }
+
+  const bestMatch = await blockdb.queryText(answer, 1);
+  const bestMatchBlockIndex = blockIndices[bestMatch[0].document.id];
+  return blocks[bestMatchBlockIndex];
 }
