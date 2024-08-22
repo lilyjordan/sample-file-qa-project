@@ -24,6 +24,14 @@ export type PdfHighlight = {
   height: number;
 };
 
+export type Bbox = {
+  top: number;
+  left: number;
+  page: number;
+  width: number;
+  height: number;
+}
+
 export interface PdfViewerHandle {
   scrollToPage: (pageNumber: number) => void;
 }
@@ -31,9 +39,10 @@ export interface PdfViewerHandle {
 type PdfViewerProps = {
   url: string;
   pdfViewerRef?: Ref<PdfViewerHandle | undefined>;
+  highlight?: Bbox;
 };
 
-const PdfViewer = ({ url, pdfViewerRef }: PdfViewerProps) => {
+const PdfViewer = ({ url, pdfViewerRef, highlight }: PdfViewerProps) => {
   useImperativeHandle(pdfViewerRef, () => ({
     scrollToPage: (pageNumber) => {
       pageRefs.current[pageNumber - 1]?.scrollIntoView({
@@ -71,6 +80,19 @@ const PdfViewer = ({ url, pdfViewerRef }: PdfViewerProps) => {
           height={undefined}
         />
       ))}
+      {highlight &&
+        <div
+          style={{
+            position: 'absolute',
+            backgroundColor: 'yellow',
+            opacity: 0.5,
+            left: highlight.left,
+            top: highlight.top,
+            width: highlight.width,
+            height: highlight.height,
+          }}
+        />
+      }
     </Document>
   );
 };
