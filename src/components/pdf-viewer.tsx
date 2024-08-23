@@ -86,10 +86,10 @@ const PdfViewer = ({ url, pdfViewerRef, highlight }: PdfViewerProps) => {
             position: 'absolute',
             backgroundColor: 'yellow',
             opacity: 0.5,
-            left: highlight.left,
-            top: highlight.top,
-            width: highlight.width,
-            height: highlight.height,
+            left: `${highlight.left * 100}%`,
+            top: `${highlight.top * 100}%`,
+            width: `${highlight.width * 100}%`,
+            height: `${highlight.height * 100}%`,
           }}
         />
       }

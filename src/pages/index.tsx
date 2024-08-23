@@ -18,7 +18,7 @@ const questions = [
 
 type Response = {
   answer: string;
-  chunk: string;
+  block: string;
 };
 
 type Responses = Record<number, Response>;
@@ -32,7 +32,7 @@ export default function Home() {
     const response = await askQuestionMutation.mutateAsync({ question });
     setResponses((prevResponses) => ({
       ...prevResponses,
-      [index]: response ?? { answer: "", chunk: "" },
+      [index]: response ?? { answer: "", block: "" },
     }));
   };
 
@@ -60,14 +60,20 @@ export default function Home() {
                 {responses[index] && (
                   <div className="mt-2 p-2 bg-gray-100 border rounded">
                     <div><strong>Answer:</strong> {responses[index].answer}</div>
-                    <div><strong>Source:</strong> {responses[index].chunk}</div>
+                    <div><strong>Source:</strong> {responses[index].block}</div>
                   </div>
                 )}
               </div>
             ))}
           </div>
           <div className="h-full overflow-auto border-l">
-            <PdfViewer url="https://utfs.io/f/05a34942-00e4-4fca-ab41-ca6910165481-zhi7w2.pdf" />
+            <PdfViewer url="https://utfs.io/f/05a34942-00e4-4fca-ab41-ca6910165481-zhi7w2.pdf" highlight={{
+              top: 0.25254592299461365,
+              left: 0.34265780448913574,
+              page: 1,
+              width: 0.3243371546268463,
+              height: 0.015495497733354568,
+            }} />
           </div>
         </div>
       </main>
