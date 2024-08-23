@@ -67,13 +67,15 @@ export default function Home() {
             ))}
           </div>
           <div className="h-full overflow-auto border-l">
-            <PdfViewer url="https://utfs.io/f/05a34942-00e4-4fca-ab41-ca6910165481-zhi7w2.pdf" highlight={{
-              top: 0.25254592299461365,
-              left: 0.34265780448913574,
-              page: 1,
-              width: 0.3243371546268463,
-              height: 0.015495497733354568,
-            }} />
+            <PdfViewer url="https://utfs.io/f/05a34942-00e4-4fca-ab41-ca6910165481-zhi7w2.pdf"
+            // highlight={{
+            //   top: 0.25254592299461365,
+            //   left: 0.34265780448913574,
+            //   page: 1,
+            //   width: 0.3243371546268463,
+            //   height: 0.015495497733354568,
+            // }}
+            />
           </div>
         </div>
       </main>

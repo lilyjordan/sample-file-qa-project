@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import { z } from "zod";
 import { ocrResponse } from "~/constants";
 import OpenAI from "openai";
@@ -100,7 +97,7 @@ const answerQuestion = async (question: string, ocrResponse: OcrResponse): Promi
 
   return {
     answer: parsedResponse?.answer,
-    chunk: bestBlock.content,
+    block: bestBlock.content,
   }
 }
 

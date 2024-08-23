@@ -15,9 +15,6 @@ pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/b
 
 export type PdfHighlight = {
   pageNumber: number;
-  /**
-   * The coordinates as % of the page
-   */
   left: number;
   top: number;
   width: number;
@@ -58,7 +55,6 @@ const PdfViewer = ({ url, pdfViewerRef, highlight }: PdfViewerProps) => {
   );
 
   useEffect(() => {
-    // Re-initialize the refs array when numPages changes
     pageRefs.current = Array<null>(numPages).fill(null);
   }, [numPages]);
 
